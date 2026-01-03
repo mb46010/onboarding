@@ -1,5 +1,5 @@
 [project]
-name = "demo"
+name = "onboarding"
 version = "0.1.0"
 description = "AI Onboarding Demo"
 readme = "README.md"
