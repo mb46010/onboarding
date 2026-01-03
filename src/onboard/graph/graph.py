@@ -1,18 +1,24 @@
+# graph.py
+
+import logging
 from onboard.state import GraphState
 from onboard.graph.n_intent import make_intent_classification_node
 from onboard.graph.n_router import make_router_node
 from onboard.graph.n_answer import make_final_answer_node
 from langgraph.graph import END, START, StateGraph
 from langgraph.types import RetryPolicy
+from onboard.tools.mock_rag import rag_node
+from onboard.tools.mock_equipment import check_equipment_node
+from onboard.tools.mock_meeting import schedule_meeting_node
 
+logger = logging.getLogger(__name__)
 
-# graph.py - CORRECT VERSION
 def make_graph(llm, max_attempts: int=3):
     graph_builder = StateGraph(GraphState)
     retry_policy = RetryPolicy(max_attempts=max_attempts)
 
     # Add ALL nodes
-    graph_builder.add_node("intent", make_intent_node(llm), retry=retry_policy)
+    graph_builder.add_node("intent", make_intent_classification_node(llm), retry=retry_policy)
     graph_builder.add_node("retrieve_docs", rag_node, retry=retry_policy)
     graph_builder.add_node("check_equipment", check_equipment_node, retry=retry_policy)
     graph_builder.add_node("schedule_meeting", schedule_meeting_node, retry=retry_policy)
@@ -25,11 +31,6 @@ def make_graph(llm, max_attempts: int=3):
     graph_builder.add_conditional_edges(
         "intent",
         route_based_on_intent,  # Returns list of tool nodes
-        {
-            "retrieve_docs": "retrieve_docs",
-            "check_equipment": "check_equipment",
-            "schedule_meeting": "schedule_meeting",
-        }
     )
     
     # All tools → answer
@@ -52,7 +53,13 @@ def route_based_on_intent(state: GraphState) -> list[str]:
         "equipment_only": ["check_equipment"],
         "meeting_only": ["schedule_meeting"],
         "doc_equipment": ["retrieve_docs", "check_equipment"],
+        "equipment_meeting": ["check_equipment", "schedule_meeting"],
+        "doc_meeting": ["retrieve_docs", "schedule_meeting"],
         "all_three": ["retrieve_docs", "check_equipment", "schedule_meeting"],
     }
-    
-    return routing.get(intent, [])
+    selection = routing.get(intent, [])
+    if selection:
+        return selection
+    else:
+        logger.error(f"No routing found for intent: {intent}")
+        raise ValueError(f"No routing found for intent: {intent}")
