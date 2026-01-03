@@ -21,21 +21,22 @@ def make_final_answer_node(llm):
 
     @observe()
     def create_final_answer_node(state: GraphState) -> Dict[str, Any]:
-        state_messages = state["messages"]
-        system_message = SystemMessage(content=ANSWER_PROMPT)
-        messages = [system_message] + state_messages
-
+        state_messages = state.get("messages", [])
         intent = state.get("intent")
         meeting_info = state.get("meeting_info", None)
         equipment_status = state.get("equipment_status", None)
         retrieval_results = state.get("retrieval_results", None)
 
-        # Combine messages with the prompt
-        # Use simple string formatting or prompt templates correctly
-        # Note: ANSWER_PROMPT.bind is for tool binding usually, not simple string templates.
-        # Assuming ANSWER_PROMPT might be a template string or ChatPromptTemplate.
-        # If it's a string, we might need to format it.
-        # For now, let's ensure variables are defined.
+        # Format the system message with all available context
+        filled_prompt = ANSWER_PROMPT.format(
+            intent=intent,
+            meeting_info=meeting_info,
+            equipment_status=equipment_status,
+            retrieval_results=retrieval_results
+        )
+        
+        system_message = SystemMessage(content=filled_prompt)
+        messages = [system_message] + state_messages
         
         prompt = ChatPromptTemplate.from_messages(messages)
         chain = prompt | structured_llm
