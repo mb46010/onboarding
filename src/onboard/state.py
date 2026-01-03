@@ -4,8 +4,6 @@ from typing import Optional, Dict, Any
 from langgraph.graph.message import add_messages
 from typing import Annotated
 
-messages: Annotated[list, add_messages]  
-
 class GraphState(TypedDict):
     # Input
     messages: Annotated[list, add_messages]

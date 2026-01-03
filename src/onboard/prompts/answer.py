@@ -11,9 +11,5 @@ Return only the final answer, no additional text.
 
 Intent: {intent}
 
-Retrieval results: {retrieval_results}
-
-Equipment status: {equipment_status}
-
-Meeting info: {meeting_info}
+Context: {context}
 """

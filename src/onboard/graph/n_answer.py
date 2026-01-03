@@ -27,16 +27,33 @@ def make_final_answer_node(llm):
         equipment_status = state.get("equipment_status", None)
         retrieval_results = state.get("retrieval_results", None)
 
+        context_parts = []
+        
+        if state.get("retrieval_results"):
+            docs = "\n".join([r["content"] for r in state["retrieval_results"]])
+            context_parts.append(f"Documents:\n{docs}")
+        
+        if state.get("equipment_status"):
+            eq = state["equipment_status"]
+            if "error" not in eq.get("status", "").lower():
+                context_parts.append(f"Equipment: {eq}")
+        
+        if state.get("meeting_info"):
+            context_parts.append(f"Meeting: {state['meeting_info']}")
+        
+        context = "\n\n".join(context_parts)
+
+
         # Format the system message with all available context
         filled_prompt = ANSWER_PROMPT.format(
             intent=intent,
-            meeting_info=meeting_info,
-            equipment_status=equipment_status,
-            retrieval_results=retrieval_results
+            context=context,
         )
         
-        system_message = SystemMessage(content=filled_prompt)
-        messages = [system_message] + state_messages
+        messages = [
+            SystemMessage(content=filled_prompt),
+            *state["messages"]
+        ]
         
         prompt = ChatPromptTemplate.from_messages(messages)
         chain = prompt | structured_llm

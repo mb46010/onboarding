@@ -31,9 +31,10 @@ def make_intent_classification_node(llm):
     @observe()
     def create_intent_classification_node(state: GraphState) -> Dict[str, Any]:
         logger.info("Node intent_classification started")
-        state_messages = state["messages"]
-        system_message = SystemMessage(content=INTENT_PROMPT)
-        messages = [system_message] + state_messages
+        messages = [
+            SystemMessage(content=INTENT_PROMPT),
+            *state["messages"]
+        ]
 
         # Combine messages with the prompt (assuming prompt is a ChatPromptTemplate or list of messages)
         # If prompt is a string, we should wrap it in a HumanMessage or SystemMessage if needed
