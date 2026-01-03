@@ -1,6 +1,6 @@
 import os
-from langfuse.callback import CallbackHandler
-from langfuse.decorators import observe
+from langfuse.langchain import CallbackHandler
+from langfuse import observe
 from dotenv import load_dotenv
 
 # Load environment variables
@@ -13,9 +13,7 @@ def get_langfuse_callback():
     host = os.getenv("LANGFUSE_HOST", "https://cloud.langfuse.com")
 
     if public_key and secret_key:
-        return CallbackHandler(
-            public_key=public_key,
-            secret_key=secret_key,
-            host=host
-        )
+        # In Langfuse 3.x, CallbackHandler for Langchain picks up 
+        # credentials from environment variables automatically.
+        return CallbackHandler()
     return None

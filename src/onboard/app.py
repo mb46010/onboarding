@@ -8,7 +8,9 @@ from onboard.state import GraphState
 from langgraph.graph import StateGraph
 from langgraph.graph.message import add_messages
 
-def main():
+import asyncio
+
+async def main():
     parser = argparse.ArgumentParser(description="Run the HR onboarding assistant graph.")
     parser.add_argument("--query", type=str, required=False, default="Is the laptop ready? Do we need to schedule a meeting?")
     parser.add_argument("--employee_email", type=str, required=False, default="employee@onboard.ai", help="Employee email")
@@ -29,7 +31,8 @@ def main():
     langfuse_handler = get_langfuse_callback()
     config = {"callbacks": [langfuse_handler]} if langfuse_handler else {}
 
-    result = graph.invoke(state, config=config)
+    # Use ainvoke for async graphs
+    result = await graph.ainvoke(state, config=config)
     print(result)
 
     # Create output directory if it doesn't exist
@@ -56,4 +59,4 @@ def main():
     print(f"Results saved to {filepath}")
 
 if __name__ == "__main__":
-    main()
+    asyncio.run(main())

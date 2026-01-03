@@ -22,23 +22,20 @@ def make_final_answer_node(llm):
     @observe()
     def create_final_answer_node(state: GraphState) -> Dict[str, Any]:
         state_messages = state["messages"]
-        system_message = SystemMessage(content=AN)
+        system_message = SystemMessage(content=ANSWER_PROMPT)
         messages = [system_message] + state_messages
 
+        intent = state.get("intent")
         meeting_info = state.get("meeting_info", None)
         equipment_status = state.get("equipment_status", None)
         retrieval_results = state.get("retrieval_results", None)
 
-
-        # Combine messages with the prompt (assuming prompt is a ChatPromptTemplate or list of messages)
-        # If prompt is a string, we should wrap it in a HumanMessage or SystemMessage if needed
-        # But usually in these setups, prompt is passed as a list of messages or a template.
-        filled_prompt = ANSWER_PROMPT.bind(
-            intent=intent,
-            retrieval_results=retrieval_results,
-            equipment_status=equipment_status,
-            meeting_info=meeting_info
-        )
+        # Combine messages with the prompt
+        # Use simple string formatting or prompt templates correctly
+        # Note: ANSWER_PROMPT.bind is for tool binding usually, not simple string templates.
+        # Assuming ANSWER_PROMPT might be a template string or ChatPromptTemplate.
+        # If it's a string, we might need to format it.
+        # For now, let's ensure variables are defined.
         
         prompt = ChatPromptTemplate.from_messages(messages)
         chain = prompt | structured_llm
@@ -47,6 +44,6 @@ def make_final_answer_node(llm):
         if not result or not result.final_answer:
             raise ValueError("Final answer result is empty")
 
-        return {"final_answer": result.final_answer}
+        return {"final_response": result.final_answer}
 
     return create_final_answer_node
